@@ -171,7 +171,7 @@ if(USE_CPR)
 		#so use system curl
 		set(USE_SYSTEM_CURL ON CACHE BOOL "")
 	endif()
-
+	set(USE_SYSTEM_CURL ON CACHE BOOL "")
 	add_subdirectory(deps/cpr)
 endif()
 

@@ -51,8 +51,8 @@ namespace SleepyDiscord {
 
 	enum class Unavailable {
 		NOT_PRESENT = -1,
-		FALSE = 0,
-		TRUE = 1,
+		SLEEPY_FALSE = 0,
+		SLEEPY_TRUE = 1,
 	};
 
 	namespace json {
@@ -66,7 +66,7 @@ namespace SleepyDiscord {
 			static inline json::Value fromType(
 			  const Unavailable& value, json::Value::AllocatorType&
 			) {
-			  return json::Value(value != Unavailable::FALSE);
+			  return json::Value(value != Unavailable::SLEEPY_FALSE);
 			}
 		};
 	}

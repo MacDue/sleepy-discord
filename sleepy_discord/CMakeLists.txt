@@ -133,7 +133,10 @@ if (NOT ONLY_SLEEPY_DISCORD)
 	else()
 		target_compile_definitions(sleepy-discord PUBLIC NONEXISTENT_SODIUM)
 	endif()
-	target_link_libraries(sleepy-discord PUBLIC ${LIBRARIES_TO_LINK})
+
+	find_package(Boost COMPONENTS thread system REQUIRED)
+	include_directories(${Boost_INCLUDE_DIR})
+	target_link_libraries(sleepy-discord PUBLIC ${Boost_LIBRARIES} ${LIBRARIES_TO_LINK})
 endif()
 
 if(NOT Git_FOUND)
