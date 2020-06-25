@@ -61,7 +61,7 @@ namespace SleepyDiscord {
 		void onOpen(websocketpp::connection_hdl hdl, GenericMessageReceiver* messageProcessor);
 		void onMessage(
 			websocketpp::connection_hdl hdl,
-			websocketpp::config::asio_client::message_type::ptr msg, 
+			websocketpp::config::asio_client::message_type::ptr msg,
 			GenericMessageReceiver* messageProcessor
 		);
 		void stopClient() override {

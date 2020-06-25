@@ -3,7 +3,7 @@ add_library(sleepy-discord
 	asio_udp.cpp
 	attachment.cpp
 	channel.cpp
-	client.cpp
+	stub_client.cpp
 	cpr_session.cpp
 	default_functions.cpp
 	embed.cpp
@@ -91,11 +91,11 @@ if (NOT ONLY_SLEEPY_DISCORD)
 	endif()
 
 	if(USE_UWEBSOCKETS)
-		find_library(LIB_UWS uWS
-			PATHS ${uwebsockets_SOURCE_DIR}/lib
-		)
-		target_include_directories(sleepy-discord PUBLIC ${uwebsockets_SOURCE_DIR}/include)
-		list(APPEND LIBRARIES_TO_LINK "${LIB_UWS}")
+		# find_library(LIB_UWS uWS
+		# 	PATHS ${uwebsockets_SOURCE_DIR}/lib
+		# )
+		# target_include_directories(sleepy-discord PUBLIC ${uwebsockets_SOURCE_DIR}/include)
+		# list(APPEND LIBRARIES_TO_LINK "${LIB_UWS}")
 		target_compile_definitions(sleepy-discord PUBLIC EXISTENT_UWEBSOCKETS)
 	else()
 		target_compile_definitions(sleepy-discord PUBLIC NONEXISTENT_UWEBSOCKETS)

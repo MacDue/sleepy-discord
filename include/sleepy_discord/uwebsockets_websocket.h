@@ -1,6 +1,6 @@
 #pragma once
 #if !defined(NONEXISTENT_UWEBSOCKETS) | defined(EXISTENT_UWEBSOCKETS)
-#include <uWS/uWS.h>
+// #include <uWS/uWS.h>
 #endif
 #ifndef NONEXISTENT_UWEBSOCKETS
 #include <thread>
@@ -8,6 +8,7 @@
 #define SLEEPY_LOCK_EXISTENT_TO SLEEPY_UWEBSOCKETS //stops the compiler from defining things from other libraries
 #include "client.h"
 
+using WebsocketConnection = int;
 namespace SleepyDiscord {
 	class UWebSocketsDiscordClient : public BaseDiscordClient {
 	public:
@@ -19,13 +20,13 @@ namespace SleepyDiscord {
 	protected:
 #include "standard_config_header.h"
 	private:
-		uWS::Hub hub;
+		// uWS::Hub hub;
 		bool connect(const std::string & uri, GenericMessageReceiver* messageProcessor, WebsocketConnection* connection);
 		void disconnect(unsigned int code, const std::string reason, WebsocketConnection* connection);
 		void send(std::string message, WebsocketConnection* connection);
 		void runAsync();
 		std::thread thread;
-		const char maxNumOfThreads;
+		char maxNumOfThreads = 1;
 		bool isConnectionBad = false;
 		SLEEPY_LOCK_CLIENT_FUNCTIONS
 	};
