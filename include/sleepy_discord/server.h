@@ -49,27 +49,11 @@ namespace SleepyDiscord {
 		JSONStructEnd
 	};
 
-	enum class Unavailable {
-		NOT_PRESENT = -1,
-		SLEEPY_FALSE = 0,
-		SLEEPY_TRUE = 1,
+	enum class AvailableFlag : char {
+		NotSet = -2,
+		Unavaiable = true,
+		Available = false,
 	};
-
-	namespace json {
-		template<>
-		struct EnumTypeHelper<Unavailable> {
-			static inline Unavailable toType(const json::Value& value) {
-			  Unavailable unavailable = static_cast<Unavailable>(json::toBool(value));
-			  return unavailable;
-			}
-
-			static inline json::Value fromType(
-			  const Unavailable& value, json::Value::AllocatorType&
-			) {
-			  return json::Value(value != Unavailable::SLEEPY_FALSE);
-			}
-		};
-	}
 
 	struct Server : public IdentifiableDiscordObject<Server> {
 		//~Server();
@@ -94,7 +78,7 @@ namespace SleepyDiscord {
 		//voice_states
 		//emojis
 		//features
-		Unavailable unavailable = Unavailable::NOT_PRESENT;
+		AvailableFlag unavailable = AvailableFlag::NotSet;
 
 		//presences
 		int MFALevel;
@@ -144,15 +128,28 @@ namespace SleepyDiscord {
 		UnavailableServer(const json::Value& json);
 		//UnavailableServer(const json::Values values);
 
-		Unavailable unavailable = Unavailable::NOT_PRESENT;
+		AvailableFlag unavailable = AvailableFlag::NotSet;
 
-		//const static std::initializer_list<const char*const> fields;
 		JSONStructStart
 			std::make_tuple(
-				json::pair                      (&UnavailableServer::ID,           "id"         ,  json::REQUIRIED_FIELD),
-				json::pair<json::EnumTypeHelper>(&UnavailableServer::unavailable,  "unavailable",  json::OPTIONAL_FIELD )
+				json::pair(&UnavailableServer::ID, "id", json::REQUIRIED_FIELD),
+				json::pair<json::EnumTypeHelper>
+				(&UnavailableServer::unavailable, "unavailable", json::OPTIONAL_FIELD)
 			);
 		JSONStructEnd
+	};
+
+	template<>
+	struct GetDefault<AvailableFlag> {
+		static inline const AvailableFlag get() {
+			return AvailableFlag::NotSet;
+		} 
+	};
+
+	template<>
+	struct GetEnumBaseType<AvailableFlag> {
+		//this makes the json wrapper know to use getBool instead of getInt
+		using Value = bool; 
 	};
 
 	class ServerCache : public Cache<Server> {

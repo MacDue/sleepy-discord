@@ -19,10 +19,8 @@ namespace SleepyDiscord {
 	struct Webhook : public IdentifiableDiscordObject<Webhook> {
 	public:
 		Webhook() = default;
-		//Webhook(const std::string * rawJSON);
 		Webhook(const json::Value & json);
 		Webhook(const nonstd::string_view & rawJSON);
-		//Webhook(const json::Values values);
 
 		enum WebhookType {
 			INCOMING = 1,

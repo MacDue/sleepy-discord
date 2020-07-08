@@ -17,6 +17,20 @@ typedef std::size_t SizeType;
 //#include "json.h"
 
 namespace SleepyDiscord {
+	//this is outside of the json namespace
+	//to stop us from hiting some compiler bugs
+	template<class Type>
+	struct GetDefault {
+		static inline const Type get() {
+			return static_cast<Type>(0);
+		}
+	};
+
+	template<class Type>
+	struct GetEnumBaseType {
+		using Value = int64_t;
+	};
+
 	namespace json {
 		//using Value = nonstd::string_view;
 		//using Values = std::vector<Value>;
@@ -132,7 +146,7 @@ namespace SleepyDiscord {
 
 		template<class Type>
 		inline Type toEnum(const Value& value) {
-			return static_cast<Type>(json::toInt64(value));
+			return static_cast<Type>(value.Get<typename GetEnumBaseType<Type>::Value>());
 		}
 
 		template<class Base>
@@ -209,18 +223,22 @@ namespace SleepyDiscord {
 		template<> struct ClassTypeHelper<double  > : public PrimitiveTypeHelper<double  > {};
 		template<> struct ClassTypeHelper<bool    > : public PrimitiveTypeHelper<bool    > {};
 
-		template<class Type>
-		struct EnumTypeHelper {
+		template<class Type, class GetDefault, class BaseType>
+		struct BaseEnumTypeHelper {
 			static inline Type toType(const Value& value) {
 				return toEnum<Type>(value);
 			}
 			static inline Value fromType(const Type& value) {
-				return Value(static_cast<int64_t>(value));
+				return Value(static_cast<BaseType>(value));
 			}
-			static inline bool empty(const Type& value) {
-				return static_cast<int64_t>(value) == 0;
+			static inline bool empty(const Type& value) {;
+				return value == GetDefault::get();
 			}
 		};
+
+		template<class Type>
+		struct EnumTypeHelper : public
+			BaseEnumTypeHelper<Type, GetDefault<Type>, typename GetEnumBaseType<Type>::Value> {};
 
 		template<class Container, template<class...> class TypeHelper>
 		struct FromContainerFunction {

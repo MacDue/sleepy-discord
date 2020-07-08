@@ -6,14 +6,17 @@
 #include "channel.h"
 
 namespace SleepyDiscord {
+	template<class _Type>
+	using CacheParent = std::unordered_map<typename Snowflake<_Type>::RawType, _Type>;
+
 	//This is basicity an unordered_map made to work with the library
 	//only works with Discord Object with an id
 	template<class _Type>
-	struct Cache : public std::unordered_map<typename Snowflake<_Type>::RawType, _Type> {
+	struct Cache : public CacheParent<_Type> {
 	public:
 		using Type = _Type;
-		using Parent = std::unordered_map<typename Snowflake<Type>::RawType, Type>;
-		using Parent::unordered_map;
+		using Parent = CacheParent<_Type>;
+		using std::unordered_map<typename Snowflake<_Type>::RawType, _Type>::unordered_map;
 		using Key = typename Snowflake<Type>::RawType;
 		Cache() : Parent() {}
 		Cache(Parent map) : Parent(map) {}

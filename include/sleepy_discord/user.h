@@ -63,7 +63,6 @@ namespace SleepyDiscord {
 		PremiumType premiumType = PremiumType::None;
 		Flags publieFlags = Flags::None;
 
-		//const static std::initializer_list<const char*const> fields;
 		JSONStructStart
 			std::make_tuple(
 				json::pair                      (&User::ID           , "id"           , json::REQUIRIED_FIELD        ),
@@ -94,15 +93,12 @@ namespace SleepyDiscord {
 	struct Connection : public IdentifiableDiscordObject<Connection> {
 	public:
 		Connection() = default;
-		//Connection(const std::string * rawJSON);
 		Connection(const nonstd::string_view & json);
 		Connection(const json::Value& json);
-		//Connection(const json::Values values);
 		std::string name;
 		std::string type;
 		bool revoked;
 
-		//const static std::initializer_list<const char*const> fields;
 		JSONStructStart
 			std::make_tuple(
 				json::pair(&Connection::ID     , "id"     , json::REQUIRIED_FIELD),

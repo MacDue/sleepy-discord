@@ -35,7 +35,7 @@ target_include_directories(sleepy-discord
 #The codebase is c++11 but both clang and visual c++ have issues with c++11
 #These issues are fixed by using preprocessor defines to replace code that
 #cause issues with c++14 code
-if (CXX_STANDARD LESS 14)
+if (CXX_STANDARD LESS 14 OR NOT CXX_STANDARD)
 	set_target_properties(sleepy-discord PROPERTIES CXX_STANDARD 14)
 	set_target_properties(sleepy-discord PROPERTIES CXX_STANDARD_REQUIRED ON)
 	target_compile_features(sleepy-discord PUBLIC cxx_std_14)
@@ -65,7 +65,7 @@ if (NOT ONLY_SLEEPY_DISCORD)
 	if(USE_ASIO)
 		target_include_directories(sleepy-discord PUBLIC ${asio_SOURCE_DIR}/asio/include)
 		target_compile_definitions(sleepy-discord PUBLIC EXISTENT_ASIO)
-	else()
+	elseif(USE_BOOST_ASIO)
 		target_compile_definitions(sleepy-discord PUBLIC NONEXISTENT_ASIO)
 		#Look for boost as an alt
 		find_package(Boost)
@@ -134,11 +134,19 @@ if (NOT ONLY_SLEEPY_DISCORD)
 		target_compile_definitions(sleepy-discord PUBLIC EXISTENT_SODIUM)
 	else()
 		target_compile_definitions(sleepy-discord PUBLIC NONEXISTENT_SODIUM)
-  endif()
-  # Little hack for building on MYSYS2
+	endif()
   find_package(Boost COMPONENTS thread REQUIRED)
   include_directories(${Boost_INCLUDE_DIR})
   target_link_libraries(sleepy-discord PUBLIC ${Boost_LIBRARIES} ${LIBRARIES_TO_LINK})
+else()
+	target_compile_definitions(sleepy-discord PUBLIC
+		NONEXISTENT_CPR
+		NONEXISTENT_ASIO
+		NONEXISTENT_BOOST_ASIO
+		NONEXISTENT_WEBSOCKETPP
+		NONEXISTENT_UWEBSOCKETS
+		NONEXISTENT_OPUS
+		NONEXISTENT_SODIUM)
 endif()
 
 if(NOT Git_FOUND)

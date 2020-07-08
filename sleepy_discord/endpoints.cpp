@@ -11,23 +11,6 @@
 
 namespace SleepyDiscord {
 	void BaseDiscordClient::testFunction(std::string teststring) {
-		//request(Post, path("guilds/{guild.id}/roles", std::string("202917641101246465")), json::createJSON({
-		//		{"color", json::UInteger(0x1000000)}
-		//}));
-
-		//ObjectResponse<Message> m = sendMessage("error_test", "testing");
-		//if (m.error()) {
-		//	onError(ERROR_ZERO, "test");
-		//}
-		//if (std::vector<Channel>(getServerChannels("error_test")).empty()) {
-		//	onError(ERROR_NOTE, "test");
-		//}
-
-		//sendMessage(createDirectMessageChannel("99259409045143552")->ID, "Hey, How's it going?");
-
-		//uploadFile("202917641101246465", "C:/Users/steve/Documents/nsprojects/sleepy_discord/test/test_windows/hello.png", "Hello World");
-
-		editNickname("202917641101246465", "Testing 123");
 	}
 	//
 	//channel functions
@@ -37,14 +20,14 @@ namespace SleepyDiscord {
 	//	return ObjectResponse<Message>{ request(Post, path("channels/{channel.id}/messages", { channelID }), json::stringifyObj(params)) };
 	//}
 
-	ObjectResponse<Message> BaseDiscordClient::sendMessage(Snowflake<Channel> channelID, std::string message, Embed embed, bool tts, RequestSettings<ObjectResponse<Message>> settings) {
+	ObjectResponse<Message> BaseDiscordClient::sendMessage(Snowflake<Channel> channelID, std::string message, Embed embed, TTS tts, RequestSettings<ObjectResponse<Message>> settings) {
 		rapidjson::Document doc;
 		doc.SetObject();
 		rapidjson::Value content;
 		auto& allocator = doc.GetAllocator();
 		content.SetString(message.c_str(), message.length());
 		doc.AddMember("content", content, allocator);
-		if (tts == true) doc.AddMember("tts", true, allocator);
+		if (tts == TTS::EnableTTS) doc.AddMember("tts", true, allocator);
 		if (!embed.empty()) doc.AddMember("embed", json::toJSON(embed, allocator), allocator);
 		return ObjectResponse<Message>{ request(Post, path("channels/{channel.id}/messages", { channelID }), settings, json::stringify(doc)) };
 	}

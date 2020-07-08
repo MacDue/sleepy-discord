@@ -11,10 +11,8 @@ namespace SleepyDiscord {
 
 	struct VoiceState : public DiscordObject {
 		VoiceState() = default;
-		//VoiceState(const std::string * rawJson);
 		VoiceState(const nonstd::string_view & rawJSON);
 		VoiceState(const json::Value& json);
-		//VoiceState(const json::Values values);
 		Snowflake<Server> serverID;
 		Snowflake<Channel> channelID;
 		Snowflake<User> userID;
