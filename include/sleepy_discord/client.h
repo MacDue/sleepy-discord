@@ -577,6 +577,9 @@ namespace SleepyDiscord {
 		void sendHeartbeat();
 		void resetHeartbeatValues();
 		inline std::string getToken() { return *token.get(); }
+    inline void setToken(std::string new_token) {
+      token = std::make_unique<std::string>(new_token);
+    }
 		void start(const std::string _token, const char maxNumOfThreads = DEFAULT_THREADS, int _shardID = 0, int _shardCount = 0);
 		virtual bool connect(
 			const std::string & /*uri*/,                    //IN
