@@ -29,6 +29,8 @@ namespace SleepyDiscord {
 	};
 
 	class WebsocketppDiscordClient : public BaseDiscordClient {
+	private:
+    websocketpp::lib::error_code last_error;
 	public:
 		WebsocketppDiscordClient() = default;
 		WebsocketppDiscordClient(const std::string token, const char numOfThreads = SleepyDiscord::DEFAULT_THREADS);
@@ -41,10 +43,11 @@ namespace SleepyDiscord {
 		void postTask(PostableTask code) override {
 			asio::post(code);
 		}
+    websocketpp::lib::error_code& lastWsError() { return last_error; }
 		//UDPClient createUDPClient() /* override*/;
 	protected:
 #include "standard_config_header.h"
-	private:
+
 		void init();
 		bool connect(const std::string & uri,
 			GenericMessageReceiver* messageProcessor,
@@ -61,7 +64,7 @@ namespace SleepyDiscord {
 		void onOpen(websocketpp::connection_hdl hdl, GenericMessageReceiver* messageProcessor);
 		void onMessage(
 			websocketpp::connection_hdl hdl,
-			websocketpp::config::asio_client::message_type::ptr msg, 
+			websocketpp::config::asio_client::message_type::ptr msg,
 			GenericMessageReceiver* messageProcessor
 		);
 		void stopClient() override {
