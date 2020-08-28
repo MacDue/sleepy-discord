@@ -252,7 +252,7 @@ namespace SleepyDiscord {
 		theGateway = "wss://gateway.discord.gg/?v=6";	//This is needed for when session is disabled
 #else
 		Session session;
-		session.setUrl("https://discordapp.com/api/gateway");
+		session.setUrl("https://discord.com/api/gateway");
 		Response a = session.request(Get);	//todo change this back to a post
 		if (!a.text.length()) {	//error check
 			quit(false, true);
@@ -388,6 +388,9 @@ namespace SleepyDiscord {
 			heartbeatInterval = 0;    //stop heartbeating
 			wasHeartbeatAcked = true; //stops the library from spamming discord
 		}
+		//before disconnecting, heartbeats need to stop or it'll crash
+		//and if it doesn't, it'll cause another reconnect
+		if (heart.isValid()) heart.stop();
 		disconnectWebsocket(status);
 		if (consecutiveReconnectsCount == 10) getTheGateway();
 		if (reconnectTimer.isValid())
@@ -444,7 +447,6 @@ namespace SleepyDiscord {
 		switch (op) {
 		case DISPATCH:
 			lastSReceived = document["s"].GetInt();
-			consecutiveReconnectsCount = 0; //Successfully connected
 			switch (hash(json::toStdString(t).c_str())) {
 			case hash("READY"                      ): {
 				Ready readyData = d;
@@ -453,8 +455,12 @@ namespace SleepyDiscord {
 				userID = readyData.user;
 				onReady(readyData);
 				ready = true;
+				consecutiveReconnectsCount = 0; //Successfully connected
 				} break;
-			case hash("RESUMED"                    ): onResumed            (); break;
+			case hash("RESUMED"                    ): 
+				consecutiveReconnectsCount = 0; //Successfully connected
+				onResumed();
+				break;
 			case hash("GUILD_CREATE"               ): {
 				Server server(d);
 				if (serverCache)
