@@ -95,6 +95,7 @@ namespace SleepyDiscord {
 		{	//the { is used so that onResponse is called after session is removed to make debugging performance issues easier
 			//request starts here
 			Session session;
+      session.setVerbose(this->verbose);
 			session.setUrl("https://discord.com/api/v6/" + path.url());
 			std::vector<HeaderPair> header = {
 				{ "Authorization", bot ? "Bot " + getToken() : getToken() },
@@ -252,6 +253,7 @@ namespace SleepyDiscord {
 		theGateway = "wss://gateway.discord.gg/?v=6";	//This is needed for when session is disabled
 #else
 		Session session;
+    session.setVerbose(this->verbose);
 		session.setUrl("https://discord.com/api/gateway");
 		Response a = session.request(Get);	//todo change this back to a post
 		if (!a.text.length()) {	//error check
@@ -457,7 +459,7 @@ namespace SleepyDiscord {
 				ready = true;
 				consecutiveReconnectsCount = 0; //Successfully connected
 				} break;
-			case hash("RESUMED"                    ): 
+			case hash("RESUMED"                    ):
 				consecutiveReconnectsCount = 0; //Successfully connected
 				onResumed();
 				break;

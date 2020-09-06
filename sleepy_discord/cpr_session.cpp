@@ -50,5 +50,9 @@ namespace SleepyDiscord {
 		}
 		return target;
 	}
+
+  void CPRSession::setVerbose(bool verbose) {
+    session.SetOption(cpr::Verbose(verbose));
+  }
 }
 #endif

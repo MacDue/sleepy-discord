@@ -24,6 +24,9 @@ namespace SleepyDiscord {
 		inline Response request(RequestMethod method) {
 			return session->request(method);
 		}
+    inline void setVerbose(bool verbose) {
+      session->setVerbose(verbose);
+    }
 	private:
 		std::unique_ptr<GenericSession> session; //pointer to session
 	};

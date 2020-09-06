@@ -28,6 +28,7 @@ namespace SleepyDiscord {
 			responseCallback = callback;
 		}
 		Response request(RequestMethod method);
+    void setVerbose(bool verbose);
 	private:
 		Response perform(RequestMethod method);
 		cpr::Session session;

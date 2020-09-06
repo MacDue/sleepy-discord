@@ -368,6 +368,8 @@ namespace SleepyDiscord {
 		void quit() { quit(false); }	//public function for diconnecting
 		virtual void run();
 
+    void setVerbose(bool verbose) { this->verbose = verbose; }
+
 		//array of intents
 		template<class Container, typename T = typename Container::value_type>
 		void setIntents(const Container& listOfIntents) {
@@ -641,6 +643,7 @@ namespace SleepyDiscord {
 		bool ready = false;
 		bool quiting = false;
 		bool bot = true;
+    bool verbose = false;
 		void sendIdentity();
 		void sendResume();
 		void quit(bool isRestarting, bool isDisconnected = false);
