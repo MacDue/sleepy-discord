@@ -16,7 +16,7 @@ namespace SleepyDiscord {
 				cprParts.push_back(cpr::Part(m.name, cpr::File(m.value)));
 			else if (m.buffer.length > 0) {
         uint8_t* data = m.buffer.data.get();
-				auto buffer = cpr::Buffer(data, data + m.buffer.length, m.name);
+				auto buffer = cpr::Buffer(data, data + m.buffer.length, std::string(m.name));
 				cprParts.push_back(cpr::Part(m.name, buffer));
 			}
 			else
