@@ -27,18 +27,18 @@
 #include "timer.h"
 #include "voice_connection.h"
 #include "asio_schedule.h"
+#include "rate_limiter.h"
 
 namespace SleepyDiscord {
 #define TOKEN_SIZE 64
 
 	struct Request;
+	class BaseDiscordClient;
 
 	//to dos
-	//intents
 	//custom rapid json error
 	//detect cloudflare error
 	//emojis rate limits
-	//async
 	//merge to master
 	//cache
 
@@ -47,44 +47,6 @@ namespace SleepyDiscord {
 		USER_CONTROLED_THREADS = 1,
 		USE_RUN_THREAD = 3,
 		DEFAULT_THREADS = USER_CONTROLED_THREADS
-	};
-
-	class Route {
-	public:
-		using Bucket = std::string;
-		Route(const std::string route, const std::initializer_list<std::string>& _values = {});
-		Route(const char* route);
-		inline const std::string& url() {
-			return _url;
-		}
-		const Bucket bucket(RequestMethod method);
-		inline operator const std::string&() {
-			return url();
-		}
-
-	private:
-		const std::string path;
-		std::string _url;
-		const std::initializer_list<std::string>& values;
-
-		//for the snowflake part, discord class should do
-		std::unordered_map<std::string, Snowflake<User>::RawType>
-			majorParameters = {
-			{ "channel.id", {} },
-			{ "guild.id"  , {} },
-			{ "webhook.id", {} }
-		};
-	};
-
-	struct RateLimiter {
-		std::atomic<bool> isGlobalRateLimited = { false };
-		std::atomic<time_t> nextRetry = { 0 };
-		void limitBucket(Route::Bucket& bucket, time_t timestamp);
-		const time_t getLiftTime(Route::Bucket& bucket, const time_t& currentTime);
-		//isLimited also returns the next Retry timestamp
-	private:
-		std::unordered_map<Route::Bucket, time_t> buckets;
-		std::mutex mutex;
 	};
 
 	enum class TTS : char {
@@ -152,7 +114,7 @@ namespace SleepyDiscord {
 
 		template<class ParmType>
 		void requestAsync(const RequestMethod method, Route path, std::function<void(ParmType)> callback, const std::string jsonParameters = "",
-			const std::initializer_list<Part>& multipartParameters = {}, const RequestMode mode = Async) {
+			const std::vector<Part>& multipartParameters = {}, const RequestMode mode = Async) {
 			postTask(static_cast<PostableTask>(
 				Request{ *this, method, path, jsonParameters, multipartParameters, callback ? RequestCallback([callback](Response r) {
 					callback(static_cast<ParmType>(r));
@@ -162,7 +124,7 @@ namespace SleepyDiscord {
 
 		template<class ParmType>
 		Response requestSync(const RequestMethod method, Route path, std::function<void(ParmType)> callback, const std::string jsonParameters = "",
-			const std::initializer_list<Part>& multipartParameters = {}, const RequestMode mode = Sync) {
+			const std::vector<Part>& multipartParameters = {}, const RequestMode mode = Sync) {
 			return request(method, path, jsonParameters, multipartParameters, callback ? RequestCallback([callback](Response r) {
 				callback(static_cast<ParmType>(r));
 			}) : RequestCallback(nullptr), mode );
@@ -246,10 +208,10 @@ namespace SleepyDiscord {
 			return Embed::Flag::INVALID_EMBED;
 		}
 		//maybe move this to message.h
-		ObjectResponse<Message     > sendMessage             (Snowflake<Channel> channelID, std::string message, Embed embed = Embed::Flag::INVALID_EMBED, TTS tts = TTS::Default, RequestSettings<ObjectResponse<Message>> settings = {});
+		ObjectResponse<Message     > sendMessage             (Snowflake<Channel> channelID, std::string message, Embed embed = Embed::Flag::INVALID_EMBED, MessageReference replyingTo = {}, TTS tts = TTS::Default, RequestSettings<ObjectResponse<Message>> settings = {});
 		ObjectResponse<Message     > sendMessage             (SendMessageParams params                                                                                     , RequestSettings<ObjectResponse<Message>> settings = {});
-		ObjectResponse<Message     > uploadFile              (Snowflake<Channel> channelID, std::string fileLocation, std::string message, Embed embed = Embed::Flag::INVALID_EMBED, RequestSettings<ObjectResponse<Message>> settings = {});
-		ObjectResponse<Message     > uploadFile              (Snowflake<Channel> channelID, Buffer buffer, std::string message, std::string filename, Embed embed = Embed::Flag::INVALID_EMBED, RequestSettings<ObjectResponse<Message>> settings = {});
+		ObjectResponse<Message     > uploadFile              (Snowflake<Channel> channelID, std::string fileLocation, std::string message, Embed embed = Embed::Flag::INVALID_EMBED, MessageReference replyingTo = {}, RequestSettings<ObjectResponse<Message>> settings = {});
+		ObjectResponse<Message     > uploadFile              (Snowflake<Channel> channelID, Buffer buffer, std::string message, std::string filename, Embed embed = Embed::Flag::INVALID_EMBED, MessageReference replyingTo = {}, RequestSettings<ObjectResponse<Message>> settings = {});
 		BoolResponse                 addReaction             (Snowflake<Channel> channelID, Snowflake<Message> messageID, std::string emoji                                , RequestSettings<BoolResponse           > settings = {});
 		BoolResponse                 removeReaction          (Snowflake<Channel> channelID, Snowflake<Message> messageID, std::string emoji, Snowflake<User> userID = "@me");
 		ArrayResponse <Reaction    > getReactions            (Snowflake<Channel> channelID, Snowflake<Message> messageID, std::string emoji                                , RequestSettings<ArrayResponse<Reaction>> settings = {});
@@ -279,7 +241,7 @@ namespace SleepyDiscord {
 		//For Convenience
 		inline ObjectResponse<Message> editMessage(Message message, std::string newMessage) { return editMessage(message.channelID, message.ID, newMessage); }
 		inline ObjectResponse<Message> sendMessage(Snowflake<Channel> channelID, std::string message, RequestSettings<ObjectResponse<Message>> settings) {
-			return sendMessage(channelID, message, Embed::Flag::INVALID_EMBED, TTS::Default, settings);
+			return sendMessage(channelID, message, Embed::Flag::INVALID_EMBED, MessageReference{}, TTS::Default, settings);
 		}
 
 		//server functions
@@ -316,7 +278,7 @@ namespace SleepyDiscord {
 		BoolResponse                 editIntergration        (Snowflake<Server> serverID, std::string integrationID, int expireBegavior, int expireGracePeriod, bool enbleEmoticons); //to do test
 		BoolResponse                 deleteIntegration       (Snowflake<Server> serverID, std::string integrationID                              , RequestSettings<BoolResponse                 > settings = {});  //to do test this
 		BoolResponse                 syncIntegration         (Snowflake<Server> serverID, std::string integrationID                              , RequestSettings<BoolResponse                 > settings = {});  //to do test this
-		ObjectResponse<ServerEmbed > getServerEmbed          (Snowflake<Server> serverID                                                         , RequestSettings<ObjectResponse<ServerEmbed  >> settings = {});
+		ObjectResponse<ServerWidget > getServerWidget          (Snowflake<Server> serverID                                                       , RequestSettings<ObjectResponse<ServerWidget>> settings = {});
 		//edit server embed   I don't know what the perms are
 
 		//Invite functions
@@ -353,6 +315,7 @@ namespace SleepyDiscord {
 
 		//websocket functions
 		void updateStatus(std::string gameName = "", uint64_t idleSince = 0, Status status = online, bool afk = false);
+		void requestServerMembers(ServerMembersRequest request);
 
 		void waitTilReady();  ////Deprecated, uses sleep. No replacment for now
 		const bool isReady() { return ready; }
@@ -532,7 +495,7 @@ namespace SleepyDiscord {
 		virtual void onDeleteRole        (Snowflake<Server> serverID, Snowflake<Role> roleID);
 		virtual void onEditRole          (Snowflake<Server> serverID, Role role);
 		virtual void onEditEmojis        (Snowflake<Server> serverID, std::vector<Emoji> emojis);
-		virtual void onMemberChunk       (Snowflake<Server> serverID, std::vector<ServerMember> members);
+		virtual void onMemberChunk       (ServerMembersChunk memberChunk);
 		virtual void onDeleteChannel     (Channel            channel    );
 		virtual void onEditChannel       (Channel            channel    );
 		virtual void onPinMessage        (Snowflake<Channel> channelID, std::string lastPinTimestamp);
@@ -657,7 +620,7 @@ namespace SleepyDiscord {
 
 		//rate limiting
 		int8_t messagesRemaining = 0;
-		RateLimiter rateLimiter;
+		RateLimiter<BaseDiscordClient> rateLimiter;
 
 		//error handling
 		void setError(int errorCode);

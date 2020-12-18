@@ -80,11 +80,10 @@ namespace SleepyDiscord {
 		virtual void setResponseCallback(const ResponseCallback& callback) = 0;
 		virtual Response request(RequestMethod method) = 0;
     virtual void setVerbose(bool verbose) = 0;
-	protected:
-		//Use this to convert RequestMethod into a string
-		const char* getMethodName(const RequestMethod& method);
-
 	};
+
+	//Use this to convert RequestMethod into a string
+	const char* getMethodName(const RequestMethod& method);
 
 	std::string escapeURL(const std::string& string);
 };

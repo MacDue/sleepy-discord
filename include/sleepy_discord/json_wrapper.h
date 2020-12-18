@@ -5,6 +5,7 @@
 #include <vector>
 #include <tuple>
 #include <memory>
+#include <type_traits>
 //for errrors
 #include <iostream>
 
@@ -206,12 +207,43 @@ namespace SleepyDiscord {
 		template<class Object>
 		inline Value toJSON(const Object& object, Value::AllocatorType& allocator);
 
+		//ClassTypeHelper needs to know if object has a serialize member
+		template<class Object>
+		struct hasSerialize {
+		private:
+			template<typename T>
+			static constexpr auto check(T*)
+			-> typename
+				std::is_same<
+					decltype( std::declval<T>().serialize(
+						std::declval<Value::AllocatorType&>()
+					) ),
+					Value
+				>::type;
+			
+			template<typename>
+    		static constexpr std::false_type check(...);
+		
+		public:
+			using type = decltype(check<Object>(0));
+			static constexpr bool value = type::value;
+		};
+
 		template <class Type>
 		struct ClassTypeHelper : public EmptyFunction<Type> {
 			static inline Type toType(const Value& value) {
 				return value;
 			}
-			static inline Value fromType(const Type& value, Value::AllocatorType& allocator) {
+
+			template<class T>
+			static inline typename std::enable_if<hasSerialize<T>::value, Value>::type
+			fromType(const T& value, Value::AllocatorType& allocator) {
+				return value.serialize(allocator);
+			}
+
+			template<class T>
+			static inline typename std::enable_if<!hasSerialize<T>::value, Value>::type
+			fromType(const T& value, Value::AllocatorType& allocator) {
 				return toJSON(value, allocator);
 			}
 		};
@@ -266,7 +298,7 @@ namespace SleepyDiscord {
 			static inline Type toType(const Value& value) {
 				return toEnum<Type>(value);
 			}
-			static inline Value fromType(const Type& value) {
+			static inline Value fromType(const Type& value, Value::AllocatorType&) {
 				return Value(static_cast<BaseType>(value));
 			}
 			static inline bool empty(const Type& value) {;
@@ -289,12 +321,18 @@ namespace SleepyDiscord {
 			}
 		};
 
-		template<class Container, template<class...> class TypeHelper>
-		struct ContainerTypeHelper : public EmptyFunction<Container>, public FromContainerFunction<Container, TypeHelper> {
+		template<class Container>
+		struct ToContainerFunction {
 			static inline Container toType(const Value& value) {
 				return toArray<typename Container::value_type>(value);
 			}
 		};
+
+		template<class Container, template<class...> class TypeHelper>
+		struct ContainerTypeHelper :
+			public ToContainerFunction<Container>,
+			public EmptyFunction<Container>,
+			public FromContainerFunction<Container, TypeHelper> {};
 
 		template<class StdArray, template<class...> class TypeHelper>
 		struct StdArrayTypeHelper : public EmptyFunction<StdArray>, public FromContainerFunction<StdArray, TypeHelper> {
@@ -311,6 +349,22 @@ namespace SleepyDiscord {
 				}
 				return arr;
 				//return toArray<typename StdArray::value_type, std::tuple_size<StdArray>::value>(value);
+			}
+		};
+
+		template<class SmartPtr, template<class...> class TypeHelper>
+		struct SmartPtrTypeHelper {
+			static inline SmartPtr toType(const Value& value) {
+				return SmartPtr{new typename SmartPtr::element_type{
+					//copy object to pointer
+					TypeHelper<typename SmartPtr::element_type>::toType(value)
+				}};
+			}
+			static inline Value fromType(const SmartPtr& value, Value::AllocatorType& allocator) {
+				return TypeHelper<typename SmartPtr::element_type>::fromType(*value, allocator);
+			}
+			static inline bool empty(const SmartPtr& value) {;
+				return value;
 			}
 		};
 

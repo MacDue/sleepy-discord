@@ -43,25 +43,6 @@ namespace SleepyDiscord {
 		if (heart.isValid()) heart.stop();
 	}
 
-	void RateLimiter::limitBucket(Route::Bucket& bucket, time_t timestamp) {
-		std::lock_guard<std::mutex> lock(mutex);
-		buckets[bucket] = timestamp;
-	}
-
-	const time_t RateLimiter::getLiftTime(Route::Bucket& bucket, const time_t& currentTime) {
-		if (isGlobalRateLimited && currentTime < nextRetry)
-				return nextRetry;
-		isGlobalRateLimited = false;
-		std::lock_guard<std::mutex> lock(mutex);
-		auto bucketResetTimestamp = buckets.find(bucket);
-		if (bucketResetTimestamp != buckets.end()) {
-			if (currentTime < bucketResetTimestamp->second)
-				return bucketResetTimestamp->second;
-			buckets.erase(bucketResetTimestamp);
-		}
-		return 0;
-	}
-
 	Response BaseDiscordClient::request(const RequestMethod method, Route path, const std::string jsonParameters,
 		const std::vector<Part>& multipartParameters, RequestCallback callback, const RequestMode mode
 	) {
@@ -88,7 +69,10 @@ namespace SleepyDiscord {
 		if (0 < nextTry) {
 			handleExceededRateLimit(nextTry - currentTime);
 			response.statusCode = TOO_MANY_REQUESTS;
-			setError(response.statusCode);
+			onError(TOO_MANY_REQUESTS,
+				"Too many request going to " +
+					std::string(getMethodName(method)) + " " +
+					path.url());
 			handleCallbackCall();
 			return response;
 		}
@@ -96,7 +80,7 @@ namespace SleepyDiscord {
 			//request starts here
 			Session session;
       session.setVerbose(this->verbose);
-			session.setUrl("https://discord.com/api/v6/" + path.url());
+			session.setUrl("https://discord.com/api/v8/" + path.url());
 			std::vector<HeaderPair> header = {
 				{ "Authorization", bot ? "Bot " + getToken() : getToken() },
 				{ "User-Agent", userAgent },
@@ -128,7 +112,8 @@ namespace SleepyDiscord {
 				{   //this should fall down to default
 					std::string rawRetryAfter = response.header["Retry-After"];
 					//the 5 is an arbitrary number, and there's 1000 ms in a second
-					int retryAfter = rawRetryAfter != "" ? std::stoi(rawRetryAfter) : 5 * 1000;
+					int retryAfter = rawRetryAfter != "" ? std::stoi(rawRetryAfter) : 5;
+					retryAfter *= 1000; //convert to milliseconds
 					rateLimiter.isGlobalRateLimited = response.header.find("X-RateLimit-Global") != response.header.end();
 					rateLimiter.nextRetry = getEpochTimeMillisecond() + retryAfter;
 					if (!rateLimiter.isGlobalRateLimited) {
@@ -172,18 +157,21 @@ namespace SleepyDiscord {
 				//for some reason std::get_time requires gcc 5
 				std::istringstream dateStream(response.header["Date"]);
 				dateStream >> std::get_time(&date, "%a, %d %b %Y %H:%M:%S GMT");
-				const time_t reset = std::stoi(response.header["X-RateLimit-Reset"]);
+				const double reset = std::stod(response.header["X-RateLimit-Reset"]);
+				const time_t resetMS = reset * 1000;
 #if defined(_WIN32) || defined(_WIN64)
 				std::tm gmTM;
 				std::tm*const resetGM = &gmTM;
-				gmtime_s(resetGM, &reset);
+				gmtime_s(resetGM, &resetMS);
 #else
-				std::tm* resetGM = std::gmtime(&reset);
+				std::tm* resetGM = std::gmtime(&resetMS);
 #endif
 				const time_t resetDelta = (std::mktime(resetGM) - std::mktime(&date)) * 1000;
 				rateLimiter.limitBucket(bucket, resetDelta + getEpochTimeMillisecond());
 				onDepletedRequestSupply(bucket, resetDelta);
 			}
+
+			//update rate limits
 
 			handleCallbackCall();
 		}
@@ -239,6 +227,11 @@ namespace SleepyDiscord {
 		}));
 	}
 
+	void BaseDiscordClient::requestServerMembers(ServerMembersRequest request) {
+		auto data = json::toJSON(request);
+		sendL(json::stringify(data));
+	}
+
 	void BaseDiscordClient::waitTilReady() {
 		while (!ready) sleep(1000);
 	}
@@ -250,7 +243,10 @@ namespace SleepyDiscord {
 
 	void BaseDiscordClient::getTheGateway() {
 #ifdef SLEEPY_USE_HARD_CODED_GATEWAY
-		theGateway = "wss://gateway.discord.gg/?v=6";	//This is needed for when session is disabled
+	#ifndef SLEEPY_HARD_CODED_GATEWAY
+		#define SLEEPY_HARD_CODED_GATEWAY "wss://gateway.discord.gg/?v=8"
+	#endif
+		theGateway = SLEEPY_HARD_CODED_GATEWAY;	//This is needed for when session is disabled
 #else
 		Session session;
     session.setVerbose(this->verbose);
@@ -272,7 +268,7 @@ namespace SleepyDiscord {
 				unsigned int size = position - start;
 				theGateway.reserve(32);
 				theGateway.append(a.text, start, size);
-				theGateway += "/?v=6";
+				theGateway += "/?v=8";
 				break;
 			}
 		}
@@ -517,7 +513,7 @@ namespace SleepyDiscord {
 				);
 				onEditMember(serverID, user, roles, nick);
 				} break;
-			case hash("GUILD_MEMBERS_CHUNK"        ): onMemberChunk       (d["guild_id"], json::toArray<ServerMember>(d["members"])); break;
+			case hash("GUILD_MEMBERS_CHUNK"        ): onMemberChunk       (d); break;
 			case hash("GUILD_ROLE_CREATE"          ): {
 				Snowflake<Server> serverID = d["guild_id"];
 				Role role = d["role"];
@@ -758,7 +754,7 @@ namespace SleepyDiscord {
 		constexpr auto end = nonstd::string_view{endBuffer, endLength};
 
 
-		std::array<nonstd::string_view, 3> toConcat {{
+		const std::array<nonstd::string_view, 3> toConcat {{
 			start, d, end
 		}};
 

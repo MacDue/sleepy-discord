@@ -223,8 +223,6 @@ namespace SleepyDiscord {
 		PresenceUpdate(const json::Value & json);
 		PresenceUpdate(const nonstd::string_view & json);
 		User user;
-		std::vector<Snowflake<Role>> roleIDs;
-		Activity currentActivity;
 		Snowflake<Server> serverID;
 		std::string status;
 		std::vector<Activity> activities;
@@ -232,11 +230,32 @@ namespace SleepyDiscord {
 		JSONStructStart
 			std::make_tuple(
 				json::pair                           (&PresenceUpdate::user           , "user"      , json::REQUIRIED_FIELD),
-				json::pair<json::ContainerTypeHelper>(&PresenceUpdate::roleIDs        , "roles"     , json::REQUIRIED_FIELD),
-				json::pair                           (&PresenceUpdate::currentActivity, "game"      , json::NULLABLE_FIELD ),
 				json::pair                           (&PresenceUpdate::serverID       , "guild_id"  , json::OPTIONAL_FIELD ),
 				json::pair                           (&PresenceUpdate::status         , "status"    , json::REQUIRIED_FIELD),
 				json::pair<json::ContainerTypeHelper>(&PresenceUpdate::activities     , "activities", json::REQUIRIED_FIELD)
+			);
+		JSONStructEnd
+	};
+
+	struct ServerMembersChunk {
+		ServerMembersChunk() = default;
+		ServerMembersChunk(const json::Value& json);
+		ServerMembersChunk(const nonstd::string_view & json);
+		Snowflake<Server> serverID;
+        std::vector<ServerMember> members;
+		int chunkIndex;
+		int chunkCount;
+		std::vector<PresenceUpdate> presences;
+		std::string nonce;
+
+		JSONStructStart
+			std::make_tuple(
+				json::pair                           (&ServerMembersChunk::serverID  , "guild_id"   , json::REQUIRIED_FIELD),
+				json::pair<json::ContainerTypeHelper>(&ServerMembersChunk::members   , "members"    , json::REQUIRIED_FIELD),
+				json::pair                           (&ServerMembersChunk::chunkIndex, "chunk_index", json::REQUIRIED_FIELD),
+				json::pair                           (&ServerMembersChunk::chunkCount, "chunk_count", json::REQUIRIED_FIELD),
+				json::pair<json::ContainerTypeHelper>(&ServerMembersChunk::presences , "presences"  , json::OPTIONAL_FIELD ),
+				json::pair                           (&ServerMembersChunk::nonce     , "nonce"      , json::OPTIONAL_FIELD )
 			);
 		JSONStructEnd
 	};
