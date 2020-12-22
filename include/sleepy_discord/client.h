@@ -315,7 +315,7 @@ namespace SleepyDiscord {
 		ObjectResponse<Webhook> executeWebhook               (Snowflake<Webhook> webhookID, std::string webhookToken, filePathPart file, bool wait = false, std::string username = "", std::string avatar_url = "", bool tts = false);         //to do test this
 
     //Interactions
-    StandardResponse sendResponse(Snowflake<Interaction> interactionID, std::string interactionToken, std::string content = "", bool tts = false, Interaction::ResponseType type = Interaction::ACKNOWLEDGE);
+    StandardResponse sendResponse(Snowflake<Interaction> interactionID, std::string interactionToken, std::string content = "",  Embed embed = Embed{}, bool tts = false, Interaction::ResponseType type = Interaction::ACKNOWLEDGE);
 
 		//websocket functions
 		void updateStatus(std::string gameName = "", uint64_t idleSince = 0, Status status = online, bool afk = false);

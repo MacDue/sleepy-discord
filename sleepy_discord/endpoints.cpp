@@ -544,7 +544,7 @@ namespace SleepyDiscord {
 		}) };
   }
 
-  StandardResponse BaseDiscordClient::sendResponse(Snowflake<Interaction> interactionID, std::string interactionToken, std::string content, bool tts, Interaction::ResponseType type) {
+  StandardResponse BaseDiscordClient::sendResponse(Snowflake<Interaction> interactionID, std::string interactionToken, std::string content, Embed embed, bool tts, Interaction::ResponseType type) {
   	rapidjson::Document response;
 		response.SetObject();
     auto& allocator = response.GetAllocator();
@@ -554,6 +554,11 @@ namespace SleepyDiscord {
       auto& data_obj = data.SetObject();
       content_json.SetString(content.c_str(), content.length());
       data_obj.AddMember("content", content_json, allocator);
+      if (!embed.empty()) {
+        rapidjson::Value embeds;
+        embeds.SetArray().PushBack(json::toJSON(embed, allocator), allocator);
+        data_obj.AddMember("embeds", embeds, allocator);
+      }
 		  response.AddMember("data", data, allocator);
     }
 
