@@ -542,5 +542,24 @@ namespace SleepyDiscord {
 			{ "avatar_url", avatar_url          },
 			{ "tts"       , (tts ? "true" : "") }
 		}) };
+  }
+
+  StandardResponse BaseDiscordClient::sendResponse(Snowflake<Interaction> interactionID, std::string interactionToken, std::string content, bool tts, Interaction::ResponseType type) {
+  	rapidjson::Document response;
+		response.SetObject();
+    auto& allocator = response.GetAllocator();
+    response.AddMember("type", static_cast<int>(type), allocator);
+    if (type == Interaction::CHANNEL_MESSAGE || type == Interaction::CHANNEL_MESSAGE_WITH_SOURCE) {
+      rapidjson::Value data, content_json;
+      auto& data_obj = data.SetObject();
+      content_json.SetString(content.c_str(), content.length());
+      data_obj.AddMember("content", content_json, allocator);
+		  response.AddMember("data", data, allocator);
+    }
+
+    return StandardResponse{
+			request(Post, path("interactions/{interaction.id}/{interaction.token}/callback", { interactionID, interactionToken }), json::stringify(response))
+		};
 	}
+
 }

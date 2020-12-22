@@ -136,7 +136,7 @@ namespace SleepyDiscord {
 	}
 
 	void BaseDiscordClient::onMessage(Message message) {
-		
+
 	}
 
 	void BaseDiscordClient::onHeartbeat() {
@@ -148,7 +148,7 @@ namespace SleepyDiscord {
 	}
 
 	void BaseDiscordClient::onServer(Server jsonMessage) {
-	
+
 	}
 
 	void BaseDiscordClient::onChannel(Channel channel) {
@@ -158,6 +158,10 @@ namespace SleepyDiscord {
 	void BaseDiscordClient::onDispatch(const json::Value& jsonMessage) {
 
 	}
+
+  void BaseDiscordClient::onInteraction(Interaction interaction) {
+
+  }
 
 	void BaseDiscordClient::onInvaldSession() {
 
@@ -187,19 +191,19 @@ namespace SleepyDiscord {
 	}
 
 	void BaseDiscordClient::sleep(const unsigned int milliseconds) {
-	
+
 	}
-	
+
 	void BaseDiscordClient::fileRead(const char* path, std::string*const file) {
 
 	}
 
 	void BaseDiscordClient::tick(float deltaTime) {
-	
+
 	}
-	
+
 	void BaseDiscordClient::onError(ErrorCode errorCode, std::string errorMessage) {
-		
+
 	}
 
 	Timer BaseDiscordClient::schedule(TimedTask code, const time_t millisecondsTilDueTime) {

@@ -19,6 +19,7 @@
 #include "permissions.h"
 #include "gateway.h"
 #include "voice.h"
+#include "interaction.h"
 
 #include "error.h"
 #include "session.h"
@@ -313,6 +314,9 @@ namespace SleepyDiscord {
 		ObjectResponse<Webhook> executeWebhook               (Snowflake<Webhook> webhookID, std::string webhookToken, std::vector<Embed> embeds, bool wait = false, std::string username = "", std::string avatar_url = "", bool tts = false); //to do test this
 		ObjectResponse<Webhook> executeWebhook               (Snowflake<Webhook> webhookID, std::string webhookToken, filePathPart file, bool wait = false, std::string username = "", std::string avatar_url = "", bool tts = false);         //to do test this
 
+    //Interactions
+    StandardResponse sendResponse(Snowflake<Interaction> interactionID, std::string interactionToken, std::string content = "", bool tts = false, Interaction::ResponseType type = Interaction::ACKNOWLEDGE);
+
 		//websocket functions
 		void updateStatus(std::string gameName = "", uint64_t idleSince = 0, Status status = online, bool afk = false);
 		void requestServerMembers(ServerMembersRequest request);
@@ -518,6 +522,7 @@ namespace SleepyDiscord {
 		virtual void onServer            (Server             server     );
 		virtual void onChannel           (Channel            channel    );
 		virtual void onDispatch          (const json::Value& jsonMessage);
+    virtual void onInteraction       (Interaction        interaction);
 
 		//websocket stuff
 		virtual void onHeartbeat();

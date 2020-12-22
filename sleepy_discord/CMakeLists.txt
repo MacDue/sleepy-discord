@@ -21,7 +21,8 @@ add_library(sleepy-discord
 	voice.cpp
 	voice_connection.cpp
 	webhook.cpp
-	websocketpp_websocket.cpp
+  websocketpp_websocket.cpp
+  interaction.cpp
 )
 
 target_include_directories(sleepy-discord
