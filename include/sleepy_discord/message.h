@@ -115,6 +115,7 @@ namespace SleepyDiscord {
 		~MessageReference() = default;
 		MessageReference(const json::Value& json);
 		MessageReference(const nonstd::string_view& json);
+		MessageReference(const Message& message);
 
 		Snowflake<Message> messageID;
 		Snowflake<Channel> channelID;
@@ -217,6 +218,12 @@ namespace SleepyDiscord {
 		JSONStructEnd
 	};
 
+	inline MessageReference::MessageReference(const Message& message) :
+		messageID(message.ID),
+		channelID(message.channelID),
+		serverID(message.serverID)
+	{}
+
 	struct MessageRevisions {
 		MessageRevisions(const json::Value& json) :
 			messageID(json["id"]), channelID(json["channel_id"]), RevisionsJSON(json)
@@ -243,8 +250,9 @@ namespace SleepyDiscord {
 	//an object. This one is an array, making it special.
 	template<class Container, template<class...> class TypeHelper>
 	struct AllowMentionsParseHelper :
-		public json::ToContainerFunction<Container>,
-		public json::FromContainerFunction<Container, TypeHelper>
+		public json::ToContainerFunction<Container, TypeHelper>,
+		public json::FromContainerFunction<Container, TypeHelper>,
+		public json::IsArrayFunction
 	{
 		static inline bool empty(const Container& value) {
 			return value.size() == 1 && value.front().empty();
@@ -258,7 +266,9 @@ namespace SleepyDiscord {
 
 		AllowedMentions() = default;
 		~AllowedMentions() = default;
-		AllowedMentions(std::array<int, 0>) : parse({}) {}
+		AllowedMentions(int) : parse({}) {}
+		AllowedMentions(const json::Value & json);
+		AllowedMentions(const nonstd::string_view & json);
 		ParseContainer parse = {""};
 		std::vector<Snowflake<Role>> roles;
 		std::vector<Snowflake<User>> users;
