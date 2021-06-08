@@ -2,7 +2,7 @@
 #include "client.h"
 
 namespace SleepyDiscord {
-	Message::Message(const json::Value& json) :
+	Message::Message(json::Value& json) :
 		Message(json::fromJSON<Message>(json))
 	{}
 
@@ -37,6 +37,14 @@ namespace SleepyDiscord {
 	{
 		return client->sendMessage(channelID, message, embed);
 	}
+
+	Message::Interaction::Interaction(const json::Value& json) :
+		Interaction(json::fromJSON<Message::Interaction>(json))
+	{}
+
+	Message::Interaction::Interaction(const nonstd::string_view& json) :
+		Interaction(json::fromJSON<Message::Interaction>(json))
+	{}
 
 	Emoji::~Emoji() {
 	}
@@ -81,5 +89,28 @@ namespace SleepyDiscord {
 	{}
 	MessageReference::MessageReference(const nonstd::string_view & json):
 		MessageReference(json::fromJSON<MessageReference>(json))
+	{}
+	AllowedMentions::AllowedMentions(const json::Value & json):
+		AllowedMentions(json::fromJSON<AllowedMentions>(json))
+	{}
+	AllowedMentions::AllowedMentions(const nonstd::string_view & json):
+		AllowedMentions(json::fromJSON<AllowedMentions>(json))
+	{}
+
+	ActionRow::ActionRow(json::Value& json) :
+		ActionRow(json::fromJSON<ActionRow>(json))
+	{}
+	ActionRow::ActionRow(const nonstd::string_view& json) :
+		ActionRow(json::fromJSON<ActionRow>(json))
+	{}
+	Button::Button(const json::Value& json) :
+		Button(json::fromJSON<Button>(json))
+	{}
+	Button::Button(const nonstd::string_view& json) :
+		Button(json::fromJSON<Button>(json))
+	{}
+
+	RawComponent::RawComponent(const nonstd::string_view& json) :
+		RawComponent(json::fromJSON<RawComponent>(json))
 	{}
 }

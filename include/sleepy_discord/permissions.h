@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include "discord_object_interface.h"
 #include "snowflake.h"
+#include "user.h"
 
 //source: discord api docs | /topics/Permissions.md | Nov 16
 
@@ -96,7 +97,12 @@ namespace SleepyDiscord {
 		static inline bool empty(const Type& value) {;
 			return value == Type(0);
 		}
+		static inline bool isType(const json::Value& value) {
+			return value.IsString();
+		}
 	};
+
+	struct User;
 
 	/*
 	Role Structure
@@ -126,6 +132,23 @@ namespace SleepyDiscord {
 		bool managed = false;
 		bool mentionable = false;
 
+		struct Tags : public DiscordObject {
+			Tags() = default;
+			~Tags() {}
+			Tags(const json::Value& rawJSON);
+			Tags(const nonstd::string_view& json);
+			Snowflake<User> botID;
+			Snowflake<DiscordObject> integrationID;
+
+			JSONStructStart
+				std::make_tuple(
+					json::pair(&Tags::botID        , "bot_id"        , json::OPTIONAL_FIELD),
+					json::pair(&Tags::integrationID, "integration_id", json::OPTIONAL_FIELD)
+				);
+			JSONStructEnd
+		};
+		Tags tags;
+
 		inline bool operator==(Role& right) {
 			return ID == right.ID;
 		}
@@ -139,7 +162,8 @@ namespace SleepyDiscord {
 				json::pair                     (&Role::position   , "position"   , json::REQUIRIED_FIELD),
 				json::pair<UInt64StrTypeHelper>(&Role::permissions, "permissions", json::REQUIRIED_FIELD),
 				json::pair                     (&Role::managed    , "managed"    , json::REQUIRIED_FIELD),
-				json::pair                     (&Role::mentionable, "mentionable", json::REQUIRIED_FIELD)
+				json::pair                     (&Role::mentionable, "mentionable", json::REQUIRIED_FIELD),
+				json::pair                     (&Role::tags       , "tags"       , json::OPTIONAL_FIELD )
 			);
 		JSONStructEnd
 	};
