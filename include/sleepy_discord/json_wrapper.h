@@ -105,19 +105,19 @@ namespace SleepyDiscord {
 			using type = ArrayStringWrapper<value>;
 		};
 
-		template<class Type>
-		struct ArrayValueWrapper<
-			Type, typename std::enable_if<std::is_constructible<Type, Value>::value>::type
-		> {
-			using value = Value;
-			using type = ArrayStringWrapper<value>;
-		};
+		// template<class Type>
+		// struct ArrayValueWrapper<
+		// 	Type, typename std::enable_if<std::is_constructible<Type, Value>::value>::type
+		// > {
+		// 	using value = Value;
+		// 	using type = ArrayStringWrapper<value>;
+		// };
 
 		template <typename T>
 		constexpr auto hasPushBack(int)
 			-> decltype( std::declval<T>().push_back(*(std::declval<T>().begin())),
 							std::true_type() );
-		
+
 		template <typename T>
 		constexpr std::false_type hasPushBack(long);
 
@@ -297,10 +297,10 @@ namespace SleepyDiscord {
 					) ),
 					Value
 				>::type;
-			
+
 			template<typename>
     		static constexpr std::false_type check(...);
-		
+
 		public:
 			using type = decltype(check<Object>(0));
 			static constexpr bool value = type::value;
@@ -318,10 +318,10 @@ namespace SleepyDiscord {
 					) ),
 					bool
 				>::type;
-			
+
 			template<typename>
     		static constexpr std::false_type check(...);
-		
+
 		public:
 			using type = decltype(check<Object>(0));
 			static constexpr bool value = type::value;
@@ -488,7 +488,7 @@ namespace SleepyDiscord {
 				Container result;
 				std::transform(jsonArray.begin(), jsonArray.end(),
 					std::back_inserter(result),
-					[](Value& value){ 
+					[](Value& value){
 						return Helper::toType(value);
 					}
 				);
@@ -808,11 +808,11 @@ namespace SleepyDiscord {
 			const bool isNull() const {
 				return isDefined() && !static_cast<bool>(value);
 			}
-			 
+
 			Type copy(Type& defaultValue) const {
 				return isDefined() ? static_cast<bool>(value) ? *get() : defaultValue : defaultValue;
 			}
-			
+
 			void copyTo(Type& dest) const {
 				if (isAvaiable())
 					dest = *get();
@@ -866,7 +866,7 @@ namespace SleepyDiscord {
 			template<class Type2, class Deleter>
 			Maybe(std::unique_ptr<Type2, Deleter>&& other) :
 				value(std::move(other)), flags(defined) {}
-			
+
 
 			Maybe& operator=(const Maybe& right) noexcept {
 				Maybe(right).swap(*this);
@@ -992,6 +992,6 @@ namespace SleepyDiscord {
 		>
 		constexpr PairImpl<Class, Type, MaybeTypeHelper<Type, TypeHelper2>> pair(Type Class::*member, const char* name, FieldType type) {
 			return PairImpl<Class, Type, MaybeTypeHelper<Type, TypeHelper2>>{member, name, type};
-		}		
+		}
 	}
 }
