@@ -9,12 +9,12 @@
 #include "user.h"
 
 namespace SleepyDiscord {
-	
+
 	struct AppCommand : public IdentifiableDiscordObject<AppCommand> {
 		AppCommand() = default;
 		AppCommand(json::Value & json);
 		AppCommand(const nonstd::string_view & json);
-		
+
 		struct Option : public DiscordObject {
 			Option() = default;
 			Option(json::Value & json);
@@ -231,7 +231,7 @@ namespace SleepyDiscord {
 				json::pair<json::ContainerTypeHelper>(&InteractionAppCommandCallbackData::embeds         , "embeds"          , json::OPTIONAL_FIELD),
 				json::pair                           (&InteractionAppCommandCallbackData::allowedMentions, "allowed_mentions", json::OPTIONAL_FIELD),
 				json::pair<json::EnumTypeHelper     >(&InteractionAppCommandCallbackData::flags          , "flags"           , json::OPTIONAL_FIELD),
-				json::pair<json::ContainerTypeHelper>(&InteractionAppCommandCallbackData::components     , "components"      , json::OPTIONAL_FIELD)
+				json::pair<json::ContainerTypeHelper>(&InteractionAppCommandCallbackData::components     , "components"      , json::OPTIONAL_NON_EMPTY_FIELD)
 			);
 		JSONStructEnd
 	};
