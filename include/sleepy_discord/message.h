@@ -256,7 +256,7 @@ namespace SleepyDiscord {
 			APNG = 2,
 			LOTTIE = 3
 		} format;
-		
+
 		JSONStructStart
 			std::make_tuple(
 				json::pair                      (&Sticker::ID             , "id"              , json::REQUIRIED_FIELD),
@@ -495,13 +495,13 @@ namespace SleepyDiscord {
 	struct GetDefault<AllowedMentions::MentionReplierFlag> {
 		static inline const AllowedMentions::MentionReplierFlag get() {
 			return AllowedMentions::MentionReplierFlag::NotSet;
-		} 
+		}
 	};
 
 	template<>
 	struct GetEnumBaseType<AllowedMentions::MentionReplierFlag> {
 		//this makes the json wrapper know to use getBool instead of getInt
-		using Value = bool; 
+		using Value = bool;
 	};
 
 	template<class Type>
@@ -517,7 +517,7 @@ namespace SleepyDiscord {
 				json::pair                           (&Type::content        , "content"         , json::OPTIONAL_FIELD),
 				json::pair                           (&Type::embed          , "embed"           , json::OPTIONAL_FIELD),
 				json::pair                           (&Type::allowedMentions, "allowed_mentions", json::OPTIONAL_FIELD),
-				json::pair<json::ContainerTypeHelper>(&Type::components     , "components"      , json::OPTIONAL_FIELD)
+				json::pair<json::ContainerTypeHelper>(&Type::components     , "components"      , json::OPTIONAL_NON_EMPTY_FIELD)
 			);
 		JSONStructEnd
 	};
