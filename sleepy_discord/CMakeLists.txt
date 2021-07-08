@@ -211,7 +211,16 @@ if (SLEEPY_VCPKG)
 	set(LIB_CONFIG_STR "${LIB_CONFIG}")
 	set(REQUIRED_PACKAGES_STR "${REQUIRED_PACKAGES}")
 
-	configure_file(../buildtools/cmake/sleepy-discord-config.cmake.in "sleepy-discord-config.cmake" @ONLY)
+	include(CMakePackageConfigHelpers)
+
+	configure_package_config_file(
+		../buildtools/cmake/sleepy-discord-config.cmake.in
+		"sleepy-discord-config.cmake"
+		INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
+
+	install(
+		FILES ${CMAKE_CURRENT_BINARY_DIR}/sleepy-discord-config.cmake
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
 endif()
 
 target_compile_definitions(sleepy-discord PUBLIC ${LIB_CONFIG})

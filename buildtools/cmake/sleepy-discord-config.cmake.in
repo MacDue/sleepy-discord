@@ -20,6 +20,7 @@
 # This is an auto generated file
 # Please make sure you editing the right file so changes don't get overwriten
 
+@PACKAGE_INIT@
 
 set(SLEEPY_DISCORD_CONFIG "@LIB_CONFIG_STR@")
 list(APPEND SLEEPY_DISCORD_CONFIG SLEEPY_DISCORD_CMAKE)
@@ -30,6 +31,8 @@ find_path(SLEEPY_DISCORD_INCLUDE_DIR NAMES sleepy_discord/sleepy_discord.h)
 if (SLEEPY_DISCORD_INCLUDE_DIR)
 	list(APPEND SLEEPY_DISCORD_INCLUDE_DIRS ${SLEEPY_DISCORD_INCLUDE_DIR})
 endif()
+
+set_and_check(SLEEPY_DISCORD_INCLUDE_DIRS "${SLEEPY_DISCORD_INCLUDE_DIRS}")
 
 find_library(SLEEPY_DISCORD_LIB NAMES sleepy-discord)
 if(SLEEPY_DISCORD_LIB)
@@ -46,7 +49,11 @@ if(SLEEPY_DISCORD_LIB)
 		IMPORTED_LINK_INTERFACE_LIBRARIES "@LIBRARIES_TO_LINK_STR@"
 		INTERFACE_COMPILE_DEFINITIONS "${SLEEPY_DISCORD_CONFIG}"
 		IMPORTED_LOCATION "${SLEEPY_DISCORD_LIB}"
+		CXX_STANDARD_REQUIRED ON
+		INTERFACE_COMPILE_FEATURES "cxx_std_11;cxx_return_type_deduction"
 	)
+
+	check_required_components(sleepy-discord)
 else()
 	set(SLEEPY_DISCORD_FOUND False)
 endif()
