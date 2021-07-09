@@ -668,10 +668,10 @@ namespace SleepyDiscord {
 				}
 			} else if (field.type == REQUIRIED_FIELD) {
 				//error
-				std::cout <<
-				"JSON Parse Error: "
-				"variable #" << i << ": \"" << field.name << "\" not found. "
-				"Please look at call stack from your debugger for more details.";
+				// std::cout <<
+				// "JSON Parse Error: "
+				// "variable #" << i << ": \"" << field.name << "\" not found. "
+				// "Please look at call stack from your debugger for more details.";
 				if (mode == FromJSONMode::ReturnOnError)
 					return false;
 			}
